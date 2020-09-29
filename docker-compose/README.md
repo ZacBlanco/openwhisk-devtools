@@ -98,7 +98,7 @@ make restart-controller
 
 * ```error: Unable to invoke action 'hello': There was an internal server error. (code 5)```
 
-  Look at the logs in `~/tmp/openwhisk` especially `~/tmp/openwhisk/controller/logs/controller-local_logs.log` that might give more information. This can be an indication that the docker environment doesn't work properly (and on Mac you might need to switch to use [Docker for Mac](https://www.docker.com/docker-mac).
+  Look at the logs in `.openwhisk/tmp/openwhisk` especially `.openwhisk/tmp/openwhisk/controller/logs/controller-local_logs.log` that might give more information. This can be an indication that the docker environment doesn't work properly (and on Mac you might need to switch to use [Docker for Mac](https://www.docker.com/docker-mac).
 
 * Check the [issue tracker](https://github.com/apache/openwhisk-devtools/issues) for more.
 
@@ -211,11 +211,11 @@ wsk package list /whisk.system
 
 ## Logs
 
-- OpenWhisk Controller - `~/tmp/openwhisk/controller/logs/`
-- OpenWhisk Invoker - `~/tmp/openwhisk/invoker/logs/`
-- `docker-compose` logs - `~/tmp/openwhisk/docker-compose.log`
-- `docker-compose` feed provider logs - `~/tmp/openwhisk/docker-provider-compose.log`
-- Feed provider instance logs - `~/tmp/openwhisk/<feed_name>provider`
+- OpenWhisk Controller - `.openwhisk/tmp/openwhisk/controller/logs/`
+- OpenWhisk Invoker - `.openwhisk/tmp/openwhisk/invoker/logs/`
+- `docker-compose` logs - `.openwhisk/tmp/openwhisk/docker-compose.log`
+- `docker-compose` feed provider logs - `.openwhisk/tmp/openwhisk/docker-provider-compose.log`
+- Feed provider instance logs - `.openwhisk/tmp/openwhisk/<feed_name>provider`
 - Action output such as stdout or console.log(): `wsk -i activation logs <activationId>`
 
 ## Debugging OpenWhisk Invoker and Controller
@@ -260,3 +260,17 @@ To have a lean setup (no Kafka, Zookeeper and no Invokers as separate entities):
 ```bash
 make lean
 ```
+
+-----
+
+## Deploy with your local openwhisk fork (docker-compose)
+
+Edit `docker-compose/env.local` and set `OPENWHISK_PROJECT_HOME` to the
+path to your own openwhisk fork. After setting the variable run
+
+```
+make deploy-src
+```
+
+This will start an openwhisk cluster with two invokers and the rest of
+the required components.

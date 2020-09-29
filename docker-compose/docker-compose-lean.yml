@@ -24,7 +24,7 @@ services:
       COUCHDB_USER: whisk_admin
       COUCHDB_PASSWORD: some_passw0rd
     volumes:
-      - ~/tmp/openwhisk/couchdb:/usr/local/var/lib/couchdb:rw
+      - .openwhisk/couchdb:/usr/local/var/lib/couchdb:rw
 
   # WHISK CONTROLLER
   controller:
@@ -39,7 +39,7 @@ services:
       - db
     env_file:
       - ./docker-whisk-controller.env   # env vars shared
-      - ~/tmp/openwhisk/local.env       # generated during make setup
+      - .openwhisk/tmp/openwhisk/local.env       # generated during make setup
     environment:
       COMPONENT_NAME: controller
       PORT: 8888
@@ -66,7 +66,7 @@ services:
       CONFIG_whisk_spi_MessagingProvider: org.apache.openwhisk.connector.lean.LeanMessagingProvider
       CONFIG_whisk_spi_LoadBalancerProvider: org.apache.openwhisk.core.loadBalancer.LeanBalancer
     volumes:
-      - ~/tmp/openwhisk/controller/logs:/logs
+      - .openwhisk/controller/logs:/logs
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers:/containers
       - /sys/fs/cgroup:/sys/fs/cgroup
@@ -87,7 +87,7 @@ services:
       - MINIO_ACCESS_KEY=5VCTEQOQ0GR0NV1T67GN
       - MINIO_SECRET_KEY=8MBK5aJTR330V1sohz4n1i7W5Wv/jzahARNHUzi3
     volumes:
-      - ~/tmp/openwhisk/minio:/data:rw
+      - .openwhisk/minio:/data:rw
     ports:
       - "9001:9000"
   redis:
@@ -111,9 +111,9 @@ services:
       - redis
       - minio
     volumes:
-      - ~/tmp/openwhisk/api-gateway-ssl:/etc/ssl:ro
-      - ~/tmp/openwhisk/api-gateway-config/api-gateway/generated-conf.d:/etc/api-gateway/generated-conf.d
-      - ~/tmp/openwhisk/rclone:/root/.config/rclone:rw
+      - .openwhisk/api-gateway-ssl:/etc/ssl:ro
+      - .openwhisk/api-gateway-config/api-gateway/generated-conf.d:/etc/api-gateway/generated-conf.d
+      - .openwhisk/rclone:/root/.config/rclone:rw
     ports:
       - "80:80"
       - "443:443"

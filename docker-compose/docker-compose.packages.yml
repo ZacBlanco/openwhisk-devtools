@@ -35,7 +35,7 @@ services:
       ENDPOINT_AUTH: ${ENDPOINT_AUTH}
       REDIS_URL: redis://redis.docker:6379
     volumes:
-      - ~/tmp/openwhisk/alarmsprovider:/logs
+      - .openwhisk/alarmsprovider:/logs
   cloudantprovider:
     image: ${DOCKER_IMAGE_PREFIX:-openwhisk}/cloudantprovider
     ports:
@@ -55,7 +55,7 @@ services:
       ENDPOINT_AUTH: ${ENDPOINT_AUTH}
       REDIS_URL: redis://redis.docker:6379
     volumes:
-      - ~/tmp/openwhisk/cloudantprovider:/logs
+      - .openwhisk/cloudantprovider:/logs
   kafkaprovider:
     image: ${DOCKER_IMAGE_PREFIX:-openwhisk}/kafkaprovider
     command: /bin/bash -c "cd KafkaFeedProvider && python -u app.py >> /logs/kafkaTrigger_logs.log 2>&1"
@@ -76,4 +76,4 @@ services:
       ENDPOINT_AUTH: ${ENDPOINT_AUTH}
       REDIS_URL: redis://redis.docker:6379
     volumes:
-      - ~/tmp/openwhisk/kafkaprovider:/logs
+      - .openwhisk/kafkaprovider:/logs

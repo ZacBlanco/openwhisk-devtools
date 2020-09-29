@@ -24,7 +24,7 @@ services:
       COUCHDB_USER: whisk_admin
       COUCHDB_PASSWORD: some_passw0rd
     volumes:
-      - ~/tmp/openwhisk/couchdb:/usr/local/var/lib/couchdb:rw
+      - .openwhisk/tmp/openwhisk/couchdb:/usr/local/var/lib/couchdb:rw
 
   # KAFKA SERVICES
   zookeeper:
@@ -49,7 +49,7 @@ services:
       KAFKA_ADVERTISED_HOST_NAME: kafka
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ~/tmp/openwhisk/kafka:/kafka:rw
+      - .openwhisk/tmp/openwhisk/kafka:/kafka:rw
 
   # WHISK CONTROLLER
   controller:
@@ -64,7 +64,7 @@ services:
       - kafka
     env_file:
       - ./docker-whisk-controller.env   # env vars shared
-      - ~/tmp/openwhisk/local.env       # generated during make setup
+      - .openwhisk/tmp/openwhisk/local.env       # generated during make setup
     environment:
       COMPONENT_NAME: controller
       PORT: 8888
@@ -87,7 +87,7 @@ services:
       LOADBALANCER_HOST: ${DOCKER_COMPOSE_HOST}
       LOADBALANCER_HOST_PORT: 443
     volumes:
-      - ~/tmp/openwhisk/controller/logs:/logs
+      - .openwhisk/tmp/openwhisk/controller/logs:/logs
     ports:
       - "8888:8888"
       - "2551:2551"
@@ -109,7 +109,7 @@ services:
       - kafka
     env_file:
       - ./docker-whisk-controller.env # env vars shared
-      - ~/tmp/openwhisk/local.env     # generated during make setup
+      - .openwhisk/tmp/openwhisk/local.env     # generated during make setup
     environment:
       COMPONENT_NAME: invoker
       SERVICE_NAME: invoker0
@@ -132,13 +132,59 @@ services:
 
       WHISK_API_HOST_NAME: ${DOCKER_COMPOSE_HOST}
     volumes:
-      - ~/tmp/openwhisk/invoker/logs:/logs
+      - .openwhisk/tmp/openwhisk/invoker/logs:/logs
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers:/containers
       - /sys/fs/cgroup:/sys/fs/cgroup
     ports:
       - "8085:8085"
       - "9333:9222"
+    # WHISK INVOKER AGENT
+  invoker2:
+    image: ${DOCKER_IMAGE_PREFIX:-openwhisk}/invoker:${DOCKER_IMAGE_TAG:-latest}
+    command: /bin/sh -c "exec /init.sh --id 1 >> /logs/invoker-local_logs.log 2>&1"
+    privileged: true
+    pid: "host"
+    userns_mode: "host"
+    links:
+      - db:db.docker
+      - kafka:kafka.docker
+      - zookeeper:zookeeper.docker
+    depends_on:
+      - db
+      - kafka
+    env_file:
+      - ./docker-whisk-controller.env # env vars shared
+      - .openwhisk/tmp/openwhisk/local.env     # generated during make setup
+    environment:
+      COMPONENT_NAME: invoker
+      SERVICE_NAME: invoker1
+      PORT: 8086
+
+      KAFKA_HOSTS: kafka.docker:9092
+      ZOOKEEPER_HOSTS: zookeeper.docker:2181
+
+      CONFIG_whisk_couchdb_provider: CouchDB
+      CONFIG_whisk_couchdb_protocol: http
+      CONFIG_whisk_couchdb_port: 5984
+      CONFIG_whisk_couchdb_host: db.docker
+      CONFIG_whisk_couchdb_username: whisk_admin
+      CONFIG_whisk_couchdb_password: some_passw0rd
+
+      EDGE_HOST: ${DOCKER_COMPOSE_HOST}
+      EDGE_HOST_APIPORT: 443
+
+      CONFIG_whisk_containerFactory_containerArgs_network: openwhisk_default
+
+      WHISK_API_HOST_NAME: ${DOCKER_COMPOSE_HOST}
+    volumes:
+      - .openwhisk/tmp/openwhisk/invoker1/logs:/logs
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/containers
+      - /sys/fs/cgroup:/sys/fs/cgroup
+    ports:
+      - "8086:8086"
+      - "9334:9222"
 
   # The API Gateway is currently used to expose the Controller API
   #   see apigateway/conf/whisk-docker-compose.conf
@@ -153,7 +199,7 @@ services:
       - MINIO_ACCESS_KEY=5VCTEQOQ0GR0NV1T67GN
       - MINIO_SECRET_KEY=8MBK5aJTR330V1sohz4n1i7W5Wv/jzahARNHUzi3
     volumes:
-      - ~/tmp/openwhisk/minio:/data:rw
+      - .openwhisk/tmp/openwhisk/minio:/data:rw
     ports:
       - "9001:9000"
   redis:
@@ -177,9 +223,9 @@ services:
       - redis
       - minio
     volumes:
-      - ~/tmp/openwhisk/api-gateway-ssl:/etc/ssl:ro
-      - ~/tmp/openwhisk/api-gateway-config/api-gateway/generated-conf.d:/etc/api-gateway/generated-conf.d
-      - ~/tmp/openwhisk/rclone:/root/.config/rclone:rw
+      - .openwhisk/tmp/openwhisk/api-gateway-ssl:/etc/ssl:ro
+      - .openwhisk/tmp/openwhisk/api-gateway-config/api-gateway/generated-conf.d:/etc/api-gateway/generated-conf.d
+      - .openwhisk/tmp/openwhisk/rclone:/root/.config/rclone:rw
     ports:
       - "80:80"
       - "443:443"

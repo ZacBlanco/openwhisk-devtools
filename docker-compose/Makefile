@@ -24,6 +24,7 @@ ifeq ("$(UNAME_STR)","Linux")
 	ifeq ($(LOCAL_IP), )
 		LOCAL_IP=$(shell route | grep default | tr -s " " | cut -d " " -f 8 | xargs env ifconfig | grep "inet " | tr -s " " | cut -d " " -f 3)
 	endif
+	SHELL := /bin/bash
 else
 	LOCAL_IP ?= $(shell ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d\  -f2 | head -1)
 endif
@@ -32,18 +33,7 @@ ifeq ($(LOCAL_IP), )
 	LOCAL_IP = "localhost"
 endif
 
-DOCKER_HOST_IP ?= $(shell echo ${DOCKER_HOST} | grep -o "[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}" || echo ${LOCAL_IP})
-DOCKER_REGISTRY ?= ""
-DOCKER_IMAGE_PREFIX ?= openwhisk
-DOCKER_IMAGE_TAG ?= nightly
-OPENWHISK_VERSION ?= master
-OPENWHISK_PROJECT_HOME ?= $(CURDIR)/openwhisk-src
-OPENWHISK_CATALOG_HOME ?= $(CURDIR)/openwhisk-catalog
-WSK_CLI ?= $(OPENWHISK_PROJECT_HOME)/bin/wsk
-WSK_CLI_VERSION ?= latest
-WSK_CONFIG_FILE=$(CURDIR)/.wskprops
-OPEN_WHISK_DB_PREFIX ?= local_
-TMP_HOME ?= ~
+include env.local
 
 DOCKER_KERNEL ?= $(shell docker version --format "{{.Server.KernelVersion}}")
 DOCKER_COMPOSE_FILE=docker-compose.yml
@@ -58,7 +48,7 @@ ifndef VERBOSE
 endif
 
 # Quick-Start is a simple way to get started with OpenWhisk locally
-#   1. at start it builds the project and the docker containers
+#   1. at start it builds the project and pulls the docker containers
 #   2. then it starts all components using docker-compose
 #   3. it runs a sample hello-world function
 #   To stop and cleanup the environment use: make destroy
@@ -67,6 +57,9 @@ lean:	DOCKER_COMPOSE_FILE=docker-compose-lean.yml
 lean:	download-src download-cli docker-pull-lean run hello-world quick-start-info
 
 quick-start: download-src download-cli docker-pull run quick-start-pause hello-world quick-start-info
+
+.PHONY: deploy-src
+deploy-src: download-cli docker-build run quick-start-pause hello-world quick-start-info
 
 add-catalog: download-catalog init-catalog
 
